@@ -24,7 +24,7 @@
       </div>
       <div class="tab-content" id="v-pills-tabContent">
         <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">
-          <p class="mb-0">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+          <!-- <p class="mb-0">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p> -->
           <div id='US-Cases-MAP'></div>
           <div id='State-1' style="display: none;"></div>
           
@@ -383,13 +383,13 @@
             var trace3 = {
               x: date,
               y: icuBeds,
-              mode: 'lines+markers',
+              type: 'bar',
               name: 'ICU beds used',
               yaxis: 'y2',
               xaxis: 'x2'
             };
             var layout = {
-              title: `Daily Deaths and ICU hospitalizations ${pt.location}`,
+              title: `Daily Deaths and ICU hospitalizations for ${pt.location}`,
               grid: {rows: 1, columns: 2, pattern: 'independent'},
               yaxis2: {
                 // overlaying: 'y',
@@ -441,7 +441,7 @@
               name: 'Second Dose'
             };
             var layout1 = {
-              title: 'First Dose and Second Dose administered',
+              title: `First Dose and Second Dose administered for ${pt.location}`,
               xaxis:{
                 range: ['2021-01-01', '2021-04-01'],
                 rangeslider: {
