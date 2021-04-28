@@ -10,6 +10,8 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> 
+
     <title>Coview</title>
   </head>
   <body>
@@ -99,6 +101,50 @@
               </select>
             </div>
           </div>
+          <div class="container" id="grid" style="display: none;">
+            <div class="row">
+              <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title">Special title treatment</h5>
+                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                </div>
+              </div>
+              <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title">Special title treatment</h5>
+                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                </div>
+              </div>
+              <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title">Special title treatment</h5>
+                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                </div>
+              </div>
+              <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title">Special title treatment</h5>
+                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                </div>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <table class="table table-hover" id="county-table">
+                <thead>
+                  <tr>
+                    <th scope="col">County</th>
+                    <th scope="col">Case Density</th>
+                    <th scope="col">New Cases</th>
+                    <th scope="col">New Deaths</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                </tbody>
+              </table>
+            </div>
+          </div>
           <div class="col-6"><div id='State-Cases' style="display: none;"></div></div>
           <div class="col-6"><div id='State-Vaccines' style="display: none;"></div></div>
           <!-- <div id='State'>
@@ -117,85 +163,106 @@
   </body>
   <script>
     function test(opt) {
-      var x = document.getElementById('State-Cases')
-      var y = document.getElementById('State-Vaccines')
-      x.style.display = "block";
-      y.style.display = "block";
-      Plotly.d3.json(`https://api.covidactnow.org/v2/state/${opt.value}.timeseries.json?apiKey=7c46a86300384a39899b7aa0d60be10f`, function(figure){
-        function unpackDate(data) {
-          return data['metricsTimeseries'].map(row => row['date'])
-        }
-        function unpackActuals(data) {
-          return data['metricsTimeseries'].map(row => row['caseDensity'])
-        }
-        console.log(figure['metricsTimeseries'][0]['caseDensity'])
-        var date = unpackDate(figure)
-        var positivity = figure['metricsTimeseries'].map(row => row['testPositivityRatio'])
-        var vaccineFirst = figure['metricsTimeseries'].map(row => row['vaccinationsInitiatedRatio'])
-        var vaccineSecond = figure['metricsTimeseries'].map(row => row['vaccinationsCompletedRatio'])
-        var trace = {
-          x: date,
-          y: unpackActuals(figure),
-          mode: 'lines',
-          name: 'Case Density'
-        };
-        var trace1 = {
-          x: date,
-          y: positivity,
-          mode: 'lines',
-          name: 'Test Positivity',
-          yaxis: 'y2'
-        };
-
-        var trace2 = {
-          x: date,
-          y: vaccineFirst,
-          mode: 'lines+markers',
-          name: 'First Dose'
-        };
-        var trace3 = {
-          x: date,
-          y: vaccineSecond,
-          mode: 'lines+markers',
-          name: 'Second Dose'
-        };
-
-        var layout = {
-          width: 1000,
-      height: 650,
-          title: 'Cases per 100k vs Positivity Ratio',
-          yaxis2: {
-            overlaying: 'y',
-            side: 'right',
-            showgrid: false
-          },
-          yaxis: {
-            showgrid: false
-          },
-          xaxis: {
-            rangeslider: {}
+      $.ajax({
+        url: `/state-insights?state=${opt.value}`,
+        type: 'GET',
+        success: function(figure){
+          // console.log(figure);
+          var x = document.getElementById('State-Cases')
+          var y = document.getElementById('State-Vaccines')
+          x.style.display = "block";
+          y.style.display = "block";
+          // figure = $.parseJSON(response);
+          var grid = document.getElementById("grid");
+          var table = document.getElementById("county-table");
+          grid.style.display = "block";
+          for(i = 0; i < 10; i ++) {
+            var row = table.insertRow();
+            var c1 = row.insertCell(0);
+            var c2 = row.insertCell(1);
+            var c3 = row.insertCell(2);
+            var c4 = row.insertCell(3);
+            c1.innerHTML= figure['counties'][i]['county'];
+            c2.innerHTML= figure['counties'][i]['metrics']['caseDensity'].toFixed(2);
+            c3.innerHTML= figure['counties'][i]['actuals']['newCases'];
+            c4.innerHTML= figure['counties'][i]['actuals']['newDeaths'];
           }
-        };
-        var layout1 = {
-          width: 1000,
-      height: 650,
-          title: 'First Dose and Second Dose administered',
-          xaxis:{
-            range: ['2021-01-01', '2021-04-01'],
-            rangeslider: {
-              range: ['2021-01-01', '2021-04-01'],
+          function unpackDate(data) {
+            return data['timeseries'].map(row => row['date'])
+          }
+          function unpackActuals(data) {
+            return data['timeseries'].map(row => row['caseDensity'])
+          }
+          console.log(figure['timeseries'][0]['caseDensity'])
+          var date = unpackDate(figure)
+          var positivity = figure['timeseries'].map(row => row['testPositivityRatio'])
+          var vaccineFirst = figure['timeseries'].map(row => row['vaccinationsInitiatedRatio'])
+          var vaccineSecond = figure['timeseries'].map(row => row['vaccinationsCompletedRatio'])
+          var trace = {
+            x: date,
+            y: unpackActuals(figure),
+            mode: 'lines',
+            name: 'Case Density'
+          };
+          var trace1 = {
+            x: date,
+            y: positivity,
+            mode: 'lines',
+            name: 'Test Positivity',
+            yaxis: 'y2'
+          };
+
+          var trace2 = {
+            x: date,
+            y: vaccineFirst,
+            mode: 'lines+markers',
+            name: 'First Dose'
+          };
+          var trace3 = {
+            x: date,
+            y: vaccineSecond,
+            mode: 'lines+markers',
+            name: 'Second Dose'
+          };
+
+          var layout = {
+            width: 1000,
+            height: 650,
+            title: 'Cases per 100k vs Positivity Ratio',
+            yaxis2: {
+              overlaying: 'y',
+              side: 'right',
+              showgrid: false
+            },
+            yaxis: {
+              showgrid: false
+            },
+            xaxis: {
+              rangeslider: {}
             }
-          },
-          yaxis: {
-            range: [0, 0.5]
-          }
-        };
-        
-        Plotly.newPlot("State-Cases", [trace, trace1], layout);
-        Plotly.newPlot("State-Vaccines", [trace2, trace3], layout1);
-      })
-      
-      
+          };
+          var layout1 = {
+            width: 1000,
+            height: 650,
+            title: 'First Dose and Second Dose administered',
+            xaxis:{
+              range: ['2021-01-01', '2021-05-01'],
+              rangeslider: {
+                range: ['2021-01-01', '2021-05-01'],
+              }
+            },
+            yaxis: {
+              range: [0, 0.7]
+            }
+          };
+          
+          Plotly.newPlot("State-Cases", [trace, trace1], layout);
+          Plotly.newPlot("State-Vaccines", [trace2, trace3], layout1);
+        },
+        error: function(error){
+          console.log(error);
+        }
+      });  
     }
     Plotly.d3.json('https://api.covidactnow.org/v2/states.json?apiKey=7c46a86300384a39899b7aa0d60be10f', function(figure){
       function unpack(data, key) {
@@ -218,7 +285,7 @@
         zmin: 0,
         zmax: 10000,
         autocolorscale: true,
-        showscale: false
+        showscale: true
     }];
 
     var data1 = [{
@@ -228,7 +295,7 @@
         z: unpackRisk(figure),
         zmin: 0,
         zmax: 5,
-        showscale: false,
+        showscale: true,
         colorscale: [
             [0, 'rgb(50,205,50)'], [0.2, 'rgb(50,205,50)'],
             [0.4, 'rgb(255,215,0)'], [0.6, 'rgb(255,69,0)'],
@@ -246,11 +313,11 @@
         locationmode: 'USA-states',
         locations: unpack(figure, 'state'),
         z: unpackVaccines(figure),
-        zmin: 0.15,
-        zmax: 0.35,
+        zmin: 0.30,
+        zmax: 0.65,
         colorscale: 'Greens',
         reversescale: true,
-        showscale: false,
+        showscale: true,
         marker: {
             line:{
                 color: 'rgb(255,255,255)',
@@ -270,7 +337,7 @@
       },
       geo:{
           scope: 'usa',
-          showlakes: false,
+          showlakes: true,
           lakecolor: 'rgb(255,255,255)'
       }
     };
