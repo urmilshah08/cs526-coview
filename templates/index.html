@@ -101,30 +101,31 @@
               </select>
             </div>
           </div>
+          <br>
           <div class="container" id="grid" style="display: none;">
             <div class="row">
               <div class="card" style="width: 18rem;">
                 <div class="card-body">
-                  <h5 class="card-title">Special title treatment</h5>
-                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                  <h4 class="card-title" id="already-vaccinated">Special title treatment</h5>
+                  <p class="card-text">Percentage of population that is fully vaccinated.</p>
                 </div>
               </div>
               <div class="card" style="width: 18rem;">
                 <div class="card-body">
-                  <h5 class="card-title">Special title treatment</h5>
-                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                  <h4 class="card-title" id="rate">Special title treatment</h5>
+                  <p class="card-text">Percentage of people fully vaccinated in the last 7 days.</p>
                 </div>
               </div>
               <div class="card" style="width: 18rem;">
                 <div class="card-body">
-                  <h5 class="card-title">Special title treatment</h5>
-                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                  <h4 class="card-title" id="rate-predict">Special title treatment</h5>
+                  <p class="card-text"># of weeks it will take to get 75% of population fully vaccinated.</p>
                 </div>
               </div>
               <div class="card" style="width: 18rem;">
                 <div class="card-body">
-                  <h5 class="card-title">Special title treatment</h5>
-                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                  <h4 class="card-title" id="rate-change">Special title treatment</h5>
+                  <p class="card-text">Percentage of first doses administered last week compared to the week prior </p>
                 </div>
               </div>
             </div>
@@ -135,8 +136,8 @@
                   <tr>
                     <th scope="col">County</th>
                     <th scope="col">Case Density</th>
-                    <th scope="col">New Cases</th>
-                    <th scope="col">New Deaths</th>
+                    <th scope="col">ICU Patients</th>
+                    <th scope="col">Infection Rate</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -176,7 +177,13 @@
           var grid = document.getElementById("grid");
           var table = document.getElementById("county-table");
           grid.style.display = "block";
-          for(i = 0; i < 10; i ++) {
+          var limit = 0;
+          limit = figure['counties'].length < 10 ? figure['counties'].length: 10;
+          var rows = table.rows.length
+          for(i = 1; i < rows; i ++) {
+            table.deleteRow(1);
+          }
+          for(i = 0; i < limit; i ++) {
             var row = table.insertRow();
             var c1 = row.insertCell(0);
             var c2 = row.insertCell(1);
@@ -184,9 +191,17 @@
             var c4 = row.insertCell(3);
             c1.innerHTML= figure['counties'][i]['county'];
             c2.innerHTML= figure['counties'][i]['metrics']['caseDensity'].toFixed(2);
-            c3.innerHTML= figure['counties'][i]['actuals']['newCases'];
-            c4.innerHTML= figure['counties'][i]['actuals']['newDeaths'];
+            c3.innerHTML= figure['counties'][i]['actuals']['hospitalBeds']['currentUsageCovid'];
+            c4.innerHTML= figure['counties'][i]['metrics']['infectionRate'] ? figure['counties'][i]['metrics']['infectionRate'].toFixed(2) : 'null';
           }
+          var totalVaccinated = document.getElementById('already-vaccinated');
+          var rate = document.getElementById('rate');
+          var rateChange = document.getElementById('rate-change');
+          var ratePredict = document.getElementById('rate-predict');
+          totalVaccinated.innerHTML = `${(figure['totalVaccinated'] * 100).toFixed(1)}%`;
+          rate.innerHTML = `${(figure['vaccinatedLastWeek'] * 100).toFixed(1)}%`;
+          rateChange.innerHTML = `${(((figure['vaccinatedInitiatedLastWeek'] - figure['vaccinatedInitiatedLastLastWeek'])/figure['vaccinatedInitiatedLastLastWeek']) * 100).toFixed(2)}%`
+          ratePredict.innerHTML = `${figure['weeksToFinish']} Weeks`
           function unpackDate(data) {
             return data['timeseries'].map(row => row['date'])
           }
@@ -238,8 +253,61 @@
               showgrid: false
             },
             xaxis: {
-              rangeslider: {}
-            }
+              rangeslider: {},
+              showgrid: false
+            },
+            shapes: [{
+              type: 'line',
+              x0: '2020-12-25',
+              y0: 0,
+              x1: '2020-12-25',
+              yref: 'paper',
+              y1: 1,
+              line: {
+                color: 'grey',
+                width: 1.5,
+                dash: 'dot'
+              }
+            },
+            {
+              type: 'line',
+              x0: '2020-10-31',
+              y0: 0,
+              x1: '2020-10-31',
+              yref: 'paper',
+              y1: 1,
+              line: {
+                color: 'grey',
+                width: 1.5,
+                dash: 'dot'
+              }
+            },
+            {
+              type: 'line',
+              x0: '2020-11-26',
+              y0: 0,
+              x1: '2020-11-26',
+              yref: 'paper',
+              y1: 1,
+              line: {
+                color: 'grey',
+                width: 1.5,
+                dash: 'dot'
+              }
+            },
+            {
+              type: 'line',
+              x0: '2020-05-25',
+              y0: 0,
+              x1: '2020-05-25',
+              yref: 'paper',
+              y1: 1,
+              line: {
+                color: 'grey',
+                width: 1.5,
+                dash: 'dot'
+              }
+            }]
           };
           var layout1 = {
             width: 1000,
@@ -469,9 +537,9 @@
                 rangeslider: {}
               },
               xaxis2: {
-                range: ['2020-08-01', '2021-04-01'],
+                range: ['2020-08-01', '2021-05-01'],
                 rangeslider: {
-                  range: ['2020-08-01', '2021-04-01']
+                  range: ['2020-08-01', '2021-05-01']
                 }
               }
             };
@@ -510,13 +578,13 @@
             var layout1 = {
               title: `First Dose and Second Dose administered for ${pt.location}`,
               xaxis:{
-                range: ['2021-01-01', '2021-04-01'],
+                range: ['2021-01-01', '2021-05-01'],
                 rangeslider: {
-                  range: ['2021-01-01', '2021-04-01']
+                  range: ['2021-01-01', '2021-05-01']
                 }
               },
               yaxis: {
-                range: [0, 0.5]
+                range: [0, 0.7]
               }
             };
             

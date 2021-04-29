@@ -18,7 +18,15 @@ def state_insights():
     result['counties'] = sorted(counties, key= lambda x: x['metrics']['caseDensity'], reverse=True)
     result['vaccinatedLastWeek'] = abs(timeseries[len(timeseries) - 2]['vaccinationsCompletedRatio'] - timeseries[len(timeseries) - 9]['vaccinationsCompletedRatio'])
     result['vaccinatedLastLastWeek'] = abs(timeseries[len(timeseries) - 16]['vaccinationsCompletedRatio'] - timeseries[len(timeseries) - 9]['vaccinationsCompletedRatio'])
-
+    result['vaccinatedInitiatedLastWeek'] = abs(timeseries[len(timeseries) - 2]['vaccinationsCompletedRatio'] - timeseries[len(timeseries) - 9]['vaccinationsInitiatedRatio'])
+    result['vaccinatedInitiatedLastLastWeek'] = abs(timeseries[len(timeseries) - 16]['vaccinationsCompletedRatio'] - timeseries[len(timeseries) - 9]['vaccinationsInitiatedRatio'])
+    result['totalVaccinated'] = timeseries[len(timeseries) - 2]['vaccinationsCompletedRatio']
+    weeks_to_finish = 1
+    while True:
+        if result['totalVaccinated'] + (weeks_to_finish * result['vaccinatedLastWeek']) >= .70:
+            break
+        weeks_to_finish += 1
+    result['weeksToFinish'] = weeks_to_finish
     return result
 # run the application
 if __name__ == "__main__":
